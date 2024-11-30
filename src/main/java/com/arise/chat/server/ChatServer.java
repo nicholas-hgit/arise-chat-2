@@ -5,10 +5,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -46,9 +48,13 @@ public class ChatServer {
 
                             ServerSocketChannel channel = (ServerSocketChannel) key.channel();
                             SocketChannel conn = channel.accept();
-                            clients.add(conn);
+
+                            writeServerName(conn);
+                            promptUsername(conn);
+
                             conn.configureBlocking(false);
                             conn.register(selector, SelectionKey.OP_READ);
+                            clients.add(conn);
 
                         }else if(key.isReadable()){
 
@@ -65,4 +71,29 @@ public class ChatServer {
              logger.error("SERVER STOPPED RUNNING",e);
         }
     }
+
+
+    private static String serverName(){
+
+        return """
+                   _____        .__              \s
+                  /  _  \\_______|__| ______ ____ \s
+                 /  /_\\  \\_  __ \\  |/  ___// __ \\\s
+                /    |    \\  | \\/  |\\___ \\\\  ___/\s
+                \\____|__  /__|  |__/____  >\\___  >
+                        \\/              \\/     \\/\s
+                """;
+    }
+
+    private static void writeServerName(SocketChannel sChannel) throws IOException {
+
+        sChannel.write(ByteBuffer.wrap(serverName().getBytes(StandardCharsets.UTF_8)));
+    }
+
+    private static void promptUsername(SocketChannel sChannel) throws IOException {
+
+        String prompt = "Enter username";
+        sChannel.write(ByteBuffer.wrap(prompt.getBytes(StandardCharsets.UTF_8)));
+    }
+
 }

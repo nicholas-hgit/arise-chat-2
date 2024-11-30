@@ -29,15 +29,26 @@ public class ChatClient {
 
             executor.execute(new MessageListener(sChannel));
 
+            String username = reader.readLine();
+
+            broadcastConnection(username,sChannel);
+
             while (sChannel.isConnected()){
 
-                String message = reader.readLine();
-                ByteBuffer buffer = ByteBuffer.wrap(message.getBytes(StandardCharsets.UTF_8));
-                sChannel.write(buffer);
+                String text = reader.readLine();
+                String message = "user::%s%n%s".formatted(username,text);
+
+                sChannel.write(ByteBuffer.wrap(message.getBytes(StandardCharsets.UTF_8)));
             }
 
         } catch (IOException e) {
              logger.error("CLIENT STOPPED RUNNING",e);
         }
+    }
+
+    static  void broadcastConnection(String username, SocketChannel sChannel) throws IOException {
+
+        String message = "%s has entered the chat".formatted(username);
+        sChannel.write(ByteBuffer.wrap(message.getBytes(StandardCharsets.UTF_8)));
     }
 }
